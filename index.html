@@ -166,11 +166,11 @@
     }
     td.free > div {
       font-size: 1.5rem;
-      color: white;
+      color: black;
     }
    th {
-  background-color: #222;
-  color: white;
+  background-color: white;
+  color: black ;
   font-weight: bold;
   padding: 10px 0; /* Más padding vertical para que no se corte */
   font-size: 1.5rem; /* Puedes aumentar un poco si quieres */
@@ -181,9 +181,14 @@
 </head>
 <body>
 
-<h1>Bingo Night Show -13 EDICION</h1>
-
 <form id="formulario">
+  <label for="titulo">Título:</label>
+<input type="text" id="titulo" placeholder="Escribe el título" value="BINGO NIGHT SHOW 13 EDICION" />
+
+  <label for="etiquetaNombre">Etiqueta Nombre:</label>
+<input type="text" id="etiquetaNombre" value="Nombre:" />
+
+  
   <label for="fecha">Fecha:</label>
   <input type="date" id="fecha" required />
 
@@ -191,10 +196,11 @@
   <input type="number" id="precio" value="5" min="0" step="0.01" required />
 
   <label for="paginas">Número de hojas:</label>
-  <input type="number" id="paginas" value="1" min="1" max="1000" required style="width:60px;" />
+  <input type="number" id="paginas" value="1" min="1" max="3000" required style="width:60px;" />
 
   <button type="submit">Generar Cartones</button>
-  <button type="button" id="guardarPDFBtn">Guardar PDF</button>
+  <button type="button" id="imprimirBtn">Imprimir cartones</button>
+
 </form>
 
 <div id="contenedorPaginas"></div>
@@ -344,6 +350,8 @@
 
   document.getElementById('formulario').addEventListener('submit', e => {
     e.preventDefault();
+    const titulo = document.getElementById('titulo').value.trim() || 'BINGO NIGHT SHOW 13 EDICION';
+    const etiquetaNombre = document.getElementById('etiquetaNombre').value.trim() || 'Nombre:';
     const fecha = document.getElementById('fecha').value;
     const precio = document.getElementById('precio').value;
     const paginas = parseInt(document.getElementById('paginas').value);
@@ -354,19 +362,32 @@
 
     const contenedor = document.getElementById('contenedorPaginas');
     contenedor.innerHTML = '';
+    
+    
+  const seriesGeneradas = new Set();
+
+  function generarSerieUnica() {
+    let num;
+    do {
+      num = Math.floor(1000 + Math.random() * 9000); // 4 dígitos
+    } while(seriesGeneradas.has(num));
+    seriesGeneradas.add(num);
+    return num;
+  }
+
 
     for(let p=0; p<paginas; p++) {
-      const paginaDiv = document.createElement('div');
-      paginaDiv.classList.add('pagina');
-      const serie = String(p+1).padStart(4, '0');
-
+    const paginaDiv = document.createElement('div');
+    paginaDiv.classList.add('pagina');
+    const serie = generarSerieUnica();
+      
   const encabezadoDiv = document.createElement('div');
   encabezadoDiv.classList.add('encabezado');
   // Aquí concatena todo el HTML en un solo string con backticks
   encabezadoDiv.innerHTML = `
-    <div>BINGO NIGHT SHOW 13 EDICION</div>
-    <div>Nombre: ________________________</div>
-    <div>Fecha: ${new Date(fecha).toLocaleDateString('es-ES')} | Precio: $${parseFloat(precio).toFixed(2)}</div>
+    <div>${titulo}</div>
+    <div>${etiquetaNombre} ________________________</div>
+    <div>Fecha: ${new Date(fecha).toLocaleDateString('es-ES')} | Precio: Bs ${parseFloat(precio).toFixed(0)}</div>
     <div>Serie: ${serie}</div>
   `;
   paginaDiv.appendChild(encabezadoDiv);
@@ -385,23 +406,13 @@
       contenedor.appendChild(paginaDiv);
     }
   });
-
-  document.getElementById('guardarPDFBtn').addEventListener('click', () => {
-    window.scrollTo(0,0);
+document.getElementById('imprimirBtn').addEventListener('click', () => {
     const contenedor = document.getElementById('contenedorPaginas');
     if (contenedor.innerHTML.trim() === '') {
       alert('Primero genera los cartones.');
       return;
     }
-    const opt = {
-      margin:       0,
-      filename:     'cartones_bingo.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, scrollY: 0 },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
-      pagebreak:    { mode: ['css', 'legacy'] }
-    };
-    html2pdf().set(opt).from(contenedor).save();
+    window.print();
   });
 
   window.addEventListener('load', () => {
